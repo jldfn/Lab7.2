@@ -1,22 +1,8 @@
-<Collection name="UselessData">
-	<Human name="Illia" age="58" loc="Tver"/>
-	<Human name="Boris" age="29" loc="Tver"/>
-	<Human name="Oleg" age="43" loc="Bryansk"/>
-	<Human name="Dmitriy" age="51" loc="Tver"/>
-	<Human name="Artemiy" age="58" loc="Penza"/>
-	<Human name="Ivan" age="77" loc="Volgograd"/>
-	<Human name="Illia" age="48" loc="Voronezh"/>
-	<Human name="Artemiy" age="57" loc="Tyumen"/>
-	<Human name="Bogdan" age="28" loc="Tolyatti"/>
-	<Human name="Arseniy" age="47" loc="Izhevsk"/>
-	<Human name="Yakov" age="59" loc="Ulyanovsk"/>
-	<Human name="Bogdan" age="69" loc="Krasnodar"/>
-	<Human name="Potap" age="11" loc="Kaliningrad"/>
-	<Human name="Boris" age="3" loc="Novosibirsk"/>
-	<Human name="Trofim" age="17" loc="Makhachkala"/>
-	<Human name="Aleksandr" age="83" loc="Belgorod"/>
-	<Human name="Yuriy" age="13" loc="Rostov_on_Don"/>
-	<Human name="Gennadiy" age="30" loc="Arkhangelsk"/>
-	<Human name="Nikita" age="9" loc="Naberezhnye_Chelny"/>
-	<Human name="Aleksandr" age="93" loc="Naberezhnye_Chelny"/>
+<Collection name="">
+	<Human name="as" age="20" loc="sfaasdasda"/>
+	<Human name="asdas" age="20" loc="sdasdas"/>
+	<Human name="Dmitry" age="22" loc="Moscow"/>
+	<Human name="sadasdasd" age="20" loc="asdasdas"/>
+	<Human name="sadasdasda" age="20" loc="asdasdas"/>
+	<Human name="sadasdasdasad" age="20" loc="asdasdas"/>
 </Collection>

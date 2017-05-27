@@ -25,7 +25,9 @@ public class SingleAddingListener extends LabListener {
                     getLocField().setText("");
                     getTable().fireTableDataChanged();
                     System.out.print("Объект " + Person.toString() + " был успешно занесен в коллекцию");*/
-                    makeCall("add",Person);
+                    getCollection().clear();
+                    getCollection().addAll(makeCall("add",Person).getUselessData());
+                    getTable().fireTableDataChanged();
                 } else {
                     System.out.print("Поле \"Локация\" не может являться пустым. В локации могут содержаться лишь символы кириллицы, латинского алфавита, цифры, \"-\" и \"_\"");
                 }

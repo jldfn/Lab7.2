@@ -57,7 +57,7 @@ public abstract class LabListener implements ActionListener {
         return locField;
     }
 
-    protected LabCollection makeCall(String command,Human object) {
+    public static LabCollection makeCall(String command,Human object) {
         try {
             SocketAddress address = new InetSocketAddress(ConsoleApp.HOSTNAME, ConsoleApp.port);
             DatagramSocket clientSocket = new DatagramSocket();

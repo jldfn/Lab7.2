@@ -20,13 +20,12 @@ import java.util.regex.Pattern;
 
 public class ConsoleApp {
     final static String defaultPath = "src/Input_Output_Files/input.txt";
-    static final String HOSTNAME = "localhost";
+    static final String HOSTNAME = "52.174.16.235";
     static final String USERNAME = "kjkszpj361";
     static final String PASSWORD = "B9zbYEl*dj}6";
     static public int port=8880;
     public static void main(String[] args) {
-        tryToConnect();
-        LabCollection ExpCol = ImportFrom(defaultPath);
+        LabCollection ExpCol = tryToConnect();
         SwingUtilities.invokeLater(
                 new Runnable() {
                     @Override
@@ -40,6 +39,7 @@ public class ConsoleApp {
                 });
         Runtime.getRuntime().addShutdownHook(new Thread() {
                                                  public void run() {
+                                                     LabListener.makeCall("disconnect",new Human());
                                                      SaveCollection(ExpCol);
                                                  }
                                              }
@@ -269,9 +269,10 @@ public class ConsoleApp {
         }
     }
 
-    public static int tryToConnect() {
+    public static LabCollection tryToConnect() {
+        int i=0;
         try {
-            for (int i = 8880; i <= 8890; i++) {
+            for (i = 8880; i <= 8890; i++) {
                 System.out.println("Trying to connect to port " + i);
                 DatagramSocket clientSocket = new DatagramSocket();
                 InetSocketAddress address = new InetSocketAddress(HOSTNAME, i);
@@ -283,14 +284,16 @@ public class ConsoleApp {
                     clientSocket.send(testPacket);
                     clientSocket.receive(testReceivePacket);
                     System.out.println(new String(testReceivePacket.getData()));
-                    return (i);
+                    port=i;
+                    break;
                 }catch (SocketTimeoutException ex){System.out.println("Port "+i+" is unavailable");continue;}
             }
         } catch (Exception e) {
             System.out.println("asda");
             e.printStackTrace();
         }
-        return (8880);
+        if(i==8891){System.out.print("Нет соединения с сервером или заняты все порты"); return null;}
+        else return LabListener.makeCall("collection",new Human());
     }
 }
 

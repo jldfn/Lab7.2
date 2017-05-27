@@ -130,15 +130,30 @@ public class Server {
                         receiveBuffer.clear();
                         serverChannel.receive(receiveBuffer);
                         receiveBuffer.flip();
-
                         byte[] humanBytes = new byte[receiveBuffer.remaining()];
                         receiveBuffer.get(humanBytes);
                         Human receivedHuman = Human.deserialize(humanBytes);
                         System.out.println(receivedHuman.toString());
-                        String receivedStr1=new String(bytes); //сюда принимаются строки
-                        String receivedStr2=new String(bytes);
                         TreeSet<Human> set = new TreeSet<>();
                         switch (sentence){
+                            case "disconnect":{throw(new ClosedByInterruptException());}
+                            case "collection":{
+                                try {
+                                    PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
+                                System.out.println(st1+" remove");
+                                ResultSet rs = st1.executeQuery();
+                                CachedRowSet cs = new CachedRowSetImpl();
+                                cs.populate(rs);
+                                TreeSet<Human> col = new TreeSet<>();
+                                while (cs.next()){
+                                    Human random = new Human();
+                                    random.setName(cs.getString("name"));
+                                    random.setLocation(cs.getString("location"));
+                                    random.setAge(cs.getInt("age"));
+                                    col.add(random);}
+                                    returnCollection.setUselessData(col);
+                                }catch (SQLException e){e.printStackTrace();}
+                            }break;
                             case "remove":{
                                 try {
                                     PreparedStatement st = connection.prepareStatement("delete from Humans where (name = ?) and (age = ?) and (location = ?);");
