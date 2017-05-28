@@ -62,17 +62,20 @@ public class LabTable extends AbstractTableModel implements TableModel {
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if(aValue!=null && aValue.toString().length()>0) {
                 Human[] arr = Humans.toArray(new Human[Humans.size()]);
+                Human object=arr[(int) getValueAt(rowIndex, 0) - 1];
                 switch (columnIndex) {
                     case 1:
                         if (Pattern.compile("[A-zА-я']+").matcher(aValue.toString()).matches()) {
-                            makeUpdateCall(arr[(int) getValueAt(rowIndex, 0) - 1],1,aValue,getHumans());
+                            getHumans().clear();
+                            getHumans().addAll(makeUpdateCall(object,1,(String)aValue).getUselessData());
                             /*Humans.remove(arr[(int) getValueAt(rowIndex, 0) - 1]);
                             Humans.add(new Human((String) aValue, arr[(int) getValueAt(rowIndex, 0) - 1].getAge(), arr[(int) getValueAt(rowIndex, 0) - 1].getLocation()));*/
                         }else{System.out.print("Поле \"Имя\" не может являться пустым.В имени могут содержаться только символы кириллицы и латинского алфавита");}
                         break;
                     case 2:
                         if((int)aValue>=0 && (int) aValue<=120) {
-                            makeUpdateCall(arr[(int) getValueAt(rowIndex, 0) - 1],2,aValue,getHumans());
+                            getHumans().clear();
+                            getHumans().addAll(makeUpdateCall(object,2,Integer.toString((int)aValue)).getUselessData());
                             /*Humans.remove(arr[(int) getValueAt(rowIndex, 0) - 1]);
                             Humans.add(new Human(arr[(int) getValueAt(rowIndex, 0) - 1].getName(), (int) aValue, arr[(int) getValueAt(rowIndex, 0) - 1].getLocation()));*/
                         }
@@ -82,8 +85,9 @@ public class LabTable extends AbstractTableModel implements TableModel {
                         }
                         break;
                     case 3:
-                        makeUpdateCall(arr[(int) getValueAt(rowIndex, 0) - 1],3,aValue,getHumans());
                         if (Pattern.compile("[A-zА-я0-9\\-_]+").matcher(aValue.toString()).matches()) {
+                            getHumans().clear();
+                            getHumans().addAll(makeUpdateCall(object,3,(String)aValue).getUselessData());
                             /*Humans.remove(arr[(int) getValueAt(rowIndex, 0) - 1]);
                             Humans.add(new Human(arr[(int) getValueAt(rowIndex, 0) - 1].getName(), arr[(int) getValueAt(rowIndex, 0) - 1].getAge(), (String) aValue));*/
                         }else{System.out.print("Поле \"Имя\" не может являться пустым.В имени могут содержаться только символы кириллицы и латинского алфавита");}
@@ -138,7 +142,7 @@ public class LabTable extends AbstractTableModel implements TableModel {
         return Humans;
     }
 
-    protected void makeUpdateCall(Human object,int attributeNumber,Object attributeValue,TreeSet<Human> humans){
+    protected LabCollection makeUpdateCall(Human object,int attributeNumber,String attributeValue){
         try {
             SocketAddress address = new InetSocketAddress(ConsoleApp.HOSTNAME, ConsoleApp.port);
             DatagramSocket clientSocket = new DatagramSocket();
@@ -151,16 +155,12 @@ public class LabTable extends AbstractTableModel implements TableModel {
             sendPacket=new DatagramPacket(sendData,sendData.length,address);
             clientSocket.send(sendPacket);
             sendData= ByteBuffer.allocate(4).putInt(attributeNumber).array();
+            System.out.print(new String(sendData));
             clientSocket.send(new DatagramPacket(sendData,sendData.length,address));
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutput out = null;
             try {
-                out = new ObjectOutputStream(bos);
-                out.writeObject(attributeValue);
-                out.flush();
-                byte[] serializedValue = bos.toByteArray();
-                bos.close();
-                clientSocket.send(new DatagramPacket(serializedValue,serializedValue.length,address));
+                clientSocket.send(new DatagramPacket(attributeValue.getBytes(),attributeValue.getBytes().length,address));
             } catch (IOException ex) {
                 // ignore close exception
             }finally {
@@ -169,8 +169,9 @@ public class LabTable extends AbstractTableModel implements TableModel {
             }
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             clientSocket.receive(receivePacket);
-            humans=LabCollection.deserialize(receivePacket.getData()).getUselessData();
             clientSocket.close();
-        }catch(Exception e){e.printStackTrace();}
+            return (LabCollection.deserialize(receivePacket.getData()));
+        }catch(IOException e){e.printStackTrace();}
+        return null;
     }
 }

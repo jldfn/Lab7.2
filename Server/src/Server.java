@@ -105,8 +105,7 @@ public class Server {
                 } catch (SQLException e){System.out.println("BAGA");}
                 DatagramChannel serverChannel = serverChannel1;
                 TimeoutThread receiveTimeout = new TimeoutThread(Thread.currentThread(), 120000);
-                SocketAddress clientAddress = clientAddress1;
-                InetSocketAddress newClientAddress;
+                SocketAddress clientAddress;
                 receiveTimeout.interrupt();
                 try {
                     receiveTimeout.start();
@@ -134,7 +133,6 @@ public class Server {
                         receiveBuffer.get(humanBytes);
                         Human receivedHuman = Human.deserialize(humanBytes);
                         System.out.println(receivedHuman.toString());
-                        TreeSet<Human> set = new TreeSet<>();
                         switch (sentence){
                             case "disconnect":{throw(new ClosedByInterruptException());}
                             case "collection":{
@@ -212,14 +210,55 @@ public class Server {
                             }
                             case "update":{
                                 try{
-                                    PreparedStatement st = connection.prepareStatement("update Humans set ?=? where (name=?) and (age=?) and (location=?)");
-                                    st.setString(1, receivedStr1);
-                                    st.setString(2, receivedStr2);
-                                    st.setString(3, receivedHuman.getName());
-                                    st.setInt(4, receivedHuman.getAge());
-                                    st.setString(5, receivedHuman.getLocation());
+                                    boolean received=false;
+                                    receiveBuffer.clear();
+                                    while(!received) {
+                                        clientAddress = serverChannel.receive(receiveBuffer);
+                                        if (!getHostname(clientAddress1).contains(getHostname(clientAddress))) {
+                                            receiveBuffer.clear();
+                                            continue;
+                                        }
+                                        received=true;
+                                    }
+                                    receiveTimeout.sleepTime=120000;
+                                    receiveTimeout.interrupt();
+                                    receiveBuffer.flip();
+                                    int attributeNumber=receiveBuffer.getInt();
+                                    System.out.println(attributeNumber);
+                                    receiveBuffer.clear();
+                                    received=false;
+                                    while(!received) {
+                                        clientAddress = serverChannel.receive(receiveBuffer);
+                                        if(!getHostname(clientAddress1).contains(getHostname(clientAddress))){
+                                            receiveBuffer.clear();
+                                            continue;
+                                        }
+                                        received=true;
+                                    }
+                                    receiveTimeout.sleepTime=120000;
+                                    receiveTimeout.interrupt();
+                                    receiveBuffer.flip();
+                                    byte[] serNewValue=new byte[receiveBuffer.remaining()];
+                                    receiveBuffer.get(serNewValue);
+                                    String newValue=new String(serNewValue);
+                                    System.out.println(newValue);
+                                    PreparedStatement st;
+                                    switch (attributeNumber){
+                                        case 1:{st=connection.prepareStatement("update Humans set name=? where (name=?) and (age=?) and (location=?);");}break;
+                                        case 2:{st=connection.prepareStatement("update Humans set age=? where (name=?) and (age=?) and (location=?);");}break;
+                                        case 3:{st=connection.prepareStatement("update Humans set location=? where (name=?) and (age=?) and (location=?);");}break;
+                                        default:{st=connection.prepareStatement("update Humans set ?=? where (name=?) and (age=?) and (location=?);");}
+                                    }
+                                    System.out.print(st);
+                                    System.out.println(receivedHuman);
+                                    if (attributeNumber==2){ st.setInt(1, Integer.parseInt(newValue));}
+                                    else{st.setString(1,newValue);}
+                                    st.setString(2, receivedHuman.getName());
+                                    st.setInt(3, receivedHuman.getAge());
+                                    st.setString(4, receivedHuman.getLocation());
+                                    st.execute();
                                     PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                    System.out.println(st1+" update");
+                                    System.out.println(st+" update");
                                     ResultSet rs = st1.executeQuery();
                                     CachedRowSet cs = new CachedRowSetImpl();
                                     cs.populate(rs);
@@ -232,7 +271,7 @@ public class Server {
                                         col.add(random);
                                         returnCollection.setUselessData(col);
                                     }
-                                }catch (SQLException e) {}
+                                }catch (SQLException e) {System.out.println("snafibu");}
                                 break;
                             }
                             case "add":{
@@ -265,6 +304,9 @@ public class Server {
                             case "import":{}
                         }
                         System.out.println(returnCollection);
+                        for(Human i:returnCollection.getUselessData()){
+                            System.out.println(i.toString());
+                        }
                         sendBuffer = ByteBuffer.wrap(returnCollection.serialize());
                         serverChannel.send(sendBuffer, clientAddress);
                         receivedHuman.setAge(receivedHuman.getAge() + 10);
