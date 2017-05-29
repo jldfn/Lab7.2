@@ -20,7 +20,7 @@ public class RemoveListener extends LabListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e){
         if (getNameField().getText().equals("kebab") && (int)getAgeSpinner().getValue()==0 && getLocField().getText().equals("")){
             try {
                 backGround.setIcon(new ImageIcon(ImageIO.read(new File("src/Backgrounds/kebab.jpg"))));
@@ -37,6 +37,9 @@ public class RemoveListener extends LabListener {
         if ((int) getAgeSpinner().getValue() >= 0 && (int) getAgeSpinner().getValue() <= 120) {
             if (Pattern.compile("[A-zА-я']+").matcher(getNameField().getText()).matches()) {
                 if (Pattern.compile("[A-zА-я0-9\\-_]+").matcher(getLocField().getText()).matches()) {
+                    if(ConsoleApp.timedOut){
+                        System.out.print("Вы не подавали признаков жизни более двух минут, будет осуществлено переподключение к серверу");
+                        ConsoleApp.tryToConnect();}
                     Human consoleArgument = new Human(getNameField().getText(), (int) getAgeSpinner().getValue(), getLocField().getText());
                     /*Iterator iter = getCollection().iterator();
                     boolean removed = false;

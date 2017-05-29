@@ -3,8 +3,8 @@
  */
 public class TimeoutThread extends Thread{
     Thread monitoringThread;
-    volatile long sleepTime;
-    TimeoutThread(Thread toStop,long sleepTime){
+    volatile long sleepTime=120000;
+    TimeoutThread(Thread toStop){
         monitoringThread=toStop;
         this.sleepTime=sleepTime;
     }
@@ -17,7 +17,7 @@ public class TimeoutThread extends Thread{
                     monitoringThread.join();
                     break;
                 } else {
-                   Thread.sleep(sleepTime); sleepTime=-1; monitoringThread.interrupt();
+                   Thread.sleep(sleepTime); sleepTime=-1; ConsoleApp.timedOut=true;
                 }
             } catch (InterruptedException e) {
             }

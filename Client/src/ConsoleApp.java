@@ -10,21 +10,22 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ConsoleApp {
+    volatile  static boolean timedOut=false;
     final static String defaultPath = "src/Input_Output_Files/input.txt";
     static final String HOSTNAME = "52.174.16.235";
     static final String USERNAME = "kjkszpj361";
     static final String PASSWORD = "B9zbYEl*dj}6";
+    static TimeoutThread timeOut;
     static public int port=8880;
     public static void main(String[] args) {
+        timeOut=new TimeoutThread(Thread.currentThread());
+        timeOut.start();
         LabCollection ExpCol = tryToConnect();
         SwingUtilities.invokeLater(
                 new Runnable() {
@@ -39,7 +40,7 @@ public class ConsoleApp {
                 });
         Runtime.getRuntime().addShutdownHook(new Thread() {
                                                  public void run() {
-                                                     LabListener.makeCall("disconnect",new Human());
+                                                     makeCall("disconnect",new Human());
                                                      SaveCollection(ExpCol);
                                                  }
                                              }
@@ -294,6 +295,21 @@ public class ConsoleApp {
         }
         if(i==8891){System.out.print("Нет соединения с сервером или заняты все порты"); return null;}
         else return LabListener.makeCall("collection",new Human());
+    }
+
+    public static void makeCall(String command,Human object) {
+        try {
+            SocketAddress address = new InetSocketAddress(ConsoleApp.HOSTNAME, ConsoleApp.port);
+            DatagramSocket clientSocket = new DatagramSocket();
+            byte[] sendData;
+            byte[] receiveData = new byte[1024];
+            String sentence = command;
+            sendData = sentence.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
+            clientSocket.send(sendPacket);
+            clientSocket.send(new DatagramPacket(object.serialize(), object.serialize().length, address));
+        } catch (IOException e) {
+        }
     }
 }
 

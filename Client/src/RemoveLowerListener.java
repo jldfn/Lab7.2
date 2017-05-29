@@ -20,11 +20,14 @@ public class RemoveLowerListener extends LabListener {
         if ((int) getAgeSpinner().getValue() >= 0 && (int) getAgeSpinner().getValue() <= 120) {
             if (Pattern.compile("[A-zА-я']+").matcher(getNameField().getText()).matches()) {
                 if (Pattern.compile("[A-zА-я0-9\\-_]+").matcher(getLocField().getText()).matches()) {
+                    if(ConsoleApp.timedOut){
+                        System.out.print("Вы не подавали признаков жизни более двух минут, будет осуществлено переподключение к серверу");
+                        ConsoleApp.tryToConnect();}
                     Human consoleArgument = new Human(getNameField().getText(), (int) getAgeSpinner().getValue(), getLocField().getText());
                     ProgressBarThread jPBarThread = new ProgressBarThread(jpb1);
                     jPBarThread.start();
-                    Iterator iter = getCollection().iterator();
-                    /*while (iter.hasNext()) {
+                    /*Iterator iter = getCollection().iterator();
+                    while (iter.hasNext()) {
                         Human a = (Human) iter.next();
                         if (consoleArgument.compareTo(a) > 0) {
                             System.out.print(a.toString() + " был удалён из коллекции");
