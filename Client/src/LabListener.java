@@ -67,8 +67,8 @@ public abstract class LabListener implements ActionListener {
             sendData = sentence.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             clientSocket.send(sendPacket);
-            clientSocket.send(new DatagramPacket(object.serialize(),object.serialize().length,address));
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            clientSocket.send(new DatagramPacket(object.serialize(),object.serialize().length,address));
             clientSocket.receive(receivePacket);
             ConsoleApp.timeOut.interrupt();
             LabCollection receivedCollection=LabCollection.deserialize(receivePacket.getData());

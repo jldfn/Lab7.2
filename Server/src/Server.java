@@ -99,13 +99,13 @@ public class Server {
                 source.setPassword("jmd821");
                 Connection connection = null;
                 LabCollection returnCollection=new LabCollection();
+                SocketAddress clientAddress;
                 try{
                     connection = source.getConnection();
                     System.out.println("NORM");
                 } catch (SQLException e){System.out.println("BAGA");}
                 DatagramChannel serverChannel = serverChannel1;
                 TimeoutThread receiveTimeout = new TimeoutThread(Thread.currentThread(), 120000);
-                SocketAddress clientAddress;
                 receiveTimeout.interrupt();
                 try {
                     receiveTimeout.start();
@@ -116,10 +116,7 @@ public class Server {
                         byte[] sendData = new byte[1024];
                         ByteBuffer sendBuffer = ByteBuffer.wrap(sendData);
                         sendBuffer.clear();
-                        clientAddress = serverChannel.receive(receiveBuffer);
-                        if (!getHostname(clientAddress1).contains(getHostname(clientAddress))) {
-                            continue;
-                        }
+                        receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
                         receiveTimeout.sleepTime = 120000;
                         receiveTimeout.interrupt();
                         receiveBuffer.flip();
@@ -127,30 +124,35 @@ public class Server {
                         receiveBuffer.get(bytes);
                         String sentence = new String(bytes);
                         receiveBuffer.clear();
-                        serverChannel.receive(receiveBuffer);
+                        clientAddress=receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
                         receiveBuffer.flip();
                         byte[] humanBytes = new byte[receiveBuffer.remaining()];
                         receiveBuffer.get(humanBytes);
                         Human receivedHuman = Human.deserialize(humanBytes);
                         System.out.println(receivedHuman.toString());
                         switch (sentence){
-                            case "disconnect":{throw(new ClosedByInterruptException());}
-                            case "collection":{
+                            case "disconnect":{System.out.println("Disconnecting port"+port);
+                            throw(new ClosedByInterruptException());}
+                            case "collection": {
+                                System.out.println("Collection");
                                 try {
                                     PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                System.out.println(st1+" remove");
-                                ResultSet rs = st1.executeQuery();
-                                CachedRowSet cs = new CachedRowSetImpl();
-                                cs.populate(rs);
-                                TreeSet<Human> col = new TreeSet<>();
-                                while (cs.next()){
-                                    Human random = new Human();
-                                    random.setName(cs.getString("name"));
-                                    random.setLocation(cs.getString("location"));
-                                    random.setAge(cs.getInt("age"));
-                                    col.add(random);}
+                                    System.out.println(st1 + " remove");
+                                    ResultSet rs = st1.executeQuery();
+                                    CachedRowSet cs = new CachedRowSetImpl();
+                                    cs.populate(rs);
+                                    TreeSet<Human> col = new TreeSet<>();
+                                    while (cs.next()) {
+                                        Human random = new Human();
+                                        random.setName(cs.getString("name"));
+                                        random.setLocation(cs.getString("location"));
+                                        random.setAge(cs.getInt("age"));
+                                        col.add(random);
+                                    }
                                     returnCollection.setUselessData(col);
-                                }catch (SQLException e){e.printStackTrace();}
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
                             }break;
                             case "remove":{
                                 try {
@@ -210,31 +212,16 @@ public class Server {
                             }
                             case "update":{
                                 try{
-                                    boolean received=false;
+
                                     receiveBuffer.clear();
-                                    while(!received) {
-                                        clientAddress = serverChannel.receive(receiveBuffer);
-                                        if (!getHostname(clientAddress1).contains(getHostname(clientAddress))) {
-                                            receiveBuffer.clear();
-                                            continue;
-                                        }
-                                        received=true;
-                                    }
+                                    receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
                                     receiveTimeout.sleepTime=120000;
                                     receiveTimeout.interrupt();
                                     receiveBuffer.flip();
                                     int attributeNumber=receiveBuffer.getInt();
                                     System.out.println(attributeNumber);
                                     receiveBuffer.clear();
-                                    received=false;
-                                    while(!received) {
-                                        clientAddress = serverChannel.receive(receiveBuffer);
-                                        if(!getHostname(clientAddress1).contains(getHostname(clientAddress))){
-                                            receiveBuffer.clear();
-                                            continue;
-                                        }
-                                        received=true;
-                                    }
+                                    clientAddress=receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
                                     receiveTimeout.sleepTime=120000;
                                     receiveTimeout.interrupt();
                                     receiveBuffer.flip();
@@ -309,7 +296,6 @@ public class Server {
                         }
                         sendBuffer = ByteBuffer.wrap(returnCollection.serialize());
                         serverChannel.send(sendBuffer, clientAddress);
-                        receivedHuman.setAge(receivedHuman.getAge() + 10);
                         sendBuffer = ByteBuffer.wrap(receivedHuman.serialize());
                         serverChannel.send(sendBuffer, clientAddress);
                         receiveBuffer.clear();
@@ -328,6 +314,20 @@ public class Server {
             }
         });
         serveThread.start();
+    }
+
+    public static SocketAddress receiveFromAddress(DatagramChannel serverChannel,SocketAddress client,ByteBuffer data) throws IOException {
+        boolean received=false;
+        SocketAddress thisClient=client;
+        while(!received) {
+            thisClient = serverChannel.receive(data);
+            if (!getHostname(client).contains(getHostname(thisClient))) {
+                data.clear();
+                continue;
+            }
+            received=true;
+        }
+        return thisClient;
     }
 
     public static String getHostname(SocketAddress address) {

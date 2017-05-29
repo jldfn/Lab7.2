@@ -1,4 +1,5 @@
 <Collection name="">
+	<Human name="asdas" age="1" loc="adasdas"/>
 	<Human name="Dmitry" age="32" loc="Moscowas"/>
 	<Human name="sadasdasda" age="20" loc="asdasdas"/>
 	<Human name="Innokentiy" age="20" loc="Birulevo"/>
