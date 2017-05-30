@@ -1,9 +1,20 @@
 <Collection name="">
-	<Human name="adsd" age="20" loc="asasds"/>
-	<Human name="asdas" age="1" loc="adasdas"/>
-	<Human name="adsd" age="20" loc="asasdsada"/>
-	<Human name="Dmitry" age="2" loc="Moscowas"/>
-	<Human name="sadasdasda" age="20" loc="asdasdas"/>
-	<Human name="Innokentiy" age="20" loc="Birulevo"/>
-	<Human name="sadasdasdasad" age="20" loc="asdasdas"/>
+	<Human name="dfdf" age="23" loc="dfdf"/>
+	<Human name="Anime" age="60" loc="Heart"/>
+	<Human name="Dimag" age="28" loc="Pidor"/>
+	<Human name="Denis" age="18" loc="Pidor"/>
+	<Human name="sasda" age="100" loc="asdas"/>
+	<Human name="Alexey" age="15" loc="Pidor"/>
+	<Human name="sasiee" age="20" loc="asdasdas"/>
+	<Human name="dfdfassswww" age="1" loc="dfdf"/>
+	<Human name="dfdfaaaaaaaa" age="21" loc="dfdf"/>
+	<Human name="Okabe_Rintaro" age="28" loc="Tokyo"/>
+	<Human name="DvaDshnayaTyanka" age="18" loc="Mechty"/>
+	<Human name="ччч" age="1" loc="чч"/>
+	<Human name="фывашшщщщ" age="20" loc="фыв"/>
+	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВ"/>
+	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВЫВ"/>
+	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВЫВВЙ"/>
+	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВЫВВЙй"/>
+	<Human name="ТЕСТОВЫЙЧЕЛИК" age="100" loc="ПРЯМВОТКАПСОМ"/>
 </Collection>

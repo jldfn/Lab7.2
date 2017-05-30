@@ -23,7 +23,6 @@ import com.sun.rowset.CachedRowSetImpl;
 public class Server {
     private static final int SSH_PORT = 22;
     private static boolean[] needsRefreshing=new boolean[11];
-    private static volatile boolean dataIsChanging=false;
     private static ConcurrentLinkedQueue<Integer> portQueue=new ConcurrentLinkedQueue<Integer>();
     private static final String HOSTNAME = "52.174.16.235";
     private static final String USERNAME = "kjkszpj361";
@@ -135,14 +134,21 @@ public class Server {
                         portQueue.add(port);
                         while (true){
                             if (portQueue.peek()==port) break;
-                            break;}
+                            }
                         receiveBuffer.flip();
                         byte[] humanBytes = new byte[receiveBuffer.remaining()];
                         receiveBuffer.get(humanBytes);
                         Human receivedHuman = Human.deserialize(humanBytes);
+                        System.out.println(receivedHuman.getAge());
                         System.out.println(receivedHuman.toString());
                         if (needsRefreshing[port-8880]){
                             serverChannel.send(ByteBuffer.wrap("true".getBytes()),clientAddress);
+                            if (sentence.contains("update")){
+                                serverChannel.receive(receiveBuffer);
+                                receiveBuffer.clear();
+                                serverChannel.receive(receiveBuffer);
+                                receiveBuffer.clear();
+                            }
                             sentence="collection";
                         }else{serverChannel.send(ByteBuffer.wrap("false".getBytes()),clientAddress);}
                         switch (sentence){
@@ -150,9 +156,9 @@ public class Server {
                             throw(new ClosedByInterruptException());}
                             case "collection": {
                                 System.out.println("Collection");
+                                needsRefreshing[port-8880]=false;
                                 try {
                                     PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                    System.out.println(st1 + " remove");
                                     ResultSet rs = st1.executeQuery();
                                     CachedRowSet cs = new CachedRowSetImpl();
                                     cs.populate(rs);
@@ -227,21 +233,22 @@ public class Server {
                             }
                             case "update":{
                                 try{
-
-                                    receiveBuffer.clear();
-                                    receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
+                                    byte[] updateBytes=new byte[1024];
+                                    ByteBuffer updateBuffer=ByteBuffer.wrap(updateBytes);
+                                    updateBuffer.clear();
+                                    receiveFromAddress(serverChannel,clientAddress1,updateBuffer);
                                     receiveTimeout.sleepTime=120000;
                                     receiveTimeout.interrupt();
-                                    receiveBuffer.flip();
-                                    int attributeNumber=receiveBuffer.getInt();
+                                    updateBuffer.flip();
+                                    int attributeNumber=updateBuffer.getInt();
                                     System.out.println(attributeNumber);
-                                    receiveBuffer.clear();
-                                    clientAddress=receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
+                                    updateBuffer.clear();
+                                    clientAddress=receiveFromAddress(serverChannel,clientAddress1,updateBuffer);
                                     receiveTimeout.sleepTime=120000;
                                     receiveTimeout.interrupt();
-                                    receiveBuffer.flip();
-                                    byte[] serNewValue=new byte[receiveBuffer.remaining()];
-                                    receiveBuffer.get(serNewValue);
+                                    updateBuffer.flip();
+                                    byte[] serNewValue=new byte[updateBuffer.remaining()];
+                                    updateBuffer.get(serNewValue);
                                     String newValue=new String(serNewValue);
                                     System.out.println(newValue);
                                     PreparedStatement st;
