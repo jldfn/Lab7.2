@@ -63,13 +63,20 @@ public abstract class LabListener implements ActionListener {
             DatagramSocket clientSocket = new DatagramSocket();
             byte[] sendData;
             byte[] receiveData = new byte[1024];
+            byte[] refreshFlag=new byte[1024];
             String sentence = command;
             sendData = sentence.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
-            clientSocket.send(sendPacket);
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            DatagramPacket flagPacket = new DatagramPacket(refreshFlag, refreshFlag.length);
+            clientSocket.send(sendPacket);
             clientSocket.send(new DatagramPacket(object.serialize(),object.serialize().length,address));
+            clientSocket.receive(flagPacket);
             clientSocket.receive(receivePacket);
+            String flag=new String(refreshFlag);
+            if(flag.contains("true")){
+                System.out.print("Вы пытались совершить запрос по неактуальным данным, они были обновлены, поробуйте повторить ваш запрос");
+            }
             ConsoleApp.timeOut.interrupt();
             LabCollection receivedCollection=LabCollection.deserialize(receivePacket.getData());
             clientSocket.close();

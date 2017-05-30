@@ -9,7 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.sql.rowset.CachedRowSet;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.postgresql.ds.PGSimpleDataSource.*;
@@ -19,6 +22,9 @@ import com.sun.rowset.CachedRowSetImpl;
  */
 public class Server {
     private static final int SSH_PORT = 22;
+    private static boolean[] needsRefreshing=new boolean[11];
+    private static volatile boolean dataIsChanging=false;
+    private static ConcurrentLinkedQueue<Integer> portQueue=new ConcurrentLinkedQueue<Integer>();
     private static final String HOSTNAME = "52.174.16.235";
     private static final String USERNAME = "kjkszpj361";
     private static final String PASSWORD = "B9zbYEl*dj}6";
@@ -34,6 +40,7 @@ public class Server {
             @Override
             public void run() {
                 try {
+                    needsRefreshing[port-8880]=false;
                     PGSimpleDataSource source1 = new PGSimpleDataSource();
                     source1.setDatabaseName("Collection");
                     source1.setPortNumber(5432);
@@ -125,11 +132,19 @@ public class Server {
                         String sentence = new String(bytes);
                         receiveBuffer.clear();
                         clientAddress=receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
+                        portQueue.add(port);
+                        while (true){
+                            if (portQueue.peek()==port) break;
+                            break;}
                         receiveBuffer.flip();
                         byte[] humanBytes = new byte[receiveBuffer.remaining()];
                         receiveBuffer.get(humanBytes);
                         Human receivedHuman = Human.deserialize(humanBytes);
                         System.out.println(receivedHuman.toString());
+                        if (needsRefreshing[port-8880]){
+                            serverChannel.send(ByteBuffer.wrap("true".getBytes()),clientAddress);
+                            sentence="collection";
+                        }else{serverChannel.send(ByteBuffer.wrap("false".getBytes()),clientAddress);}
                         switch (sentence){
                             case "disconnect":{System.out.println("Disconnecting port"+port);
                             throw(new ClosedByInterruptException());}
@@ -290,14 +305,17 @@ public class Server {
                             }
                             case "import":{}
                         }
+                        for (int i=0;i<=10;i++){
+                            if(8880+i!=port){
+                            needsRefreshing[i]=true;}
+                        }
                         System.out.println(returnCollection);
                         for(Human i:returnCollection.getUselessData()){
                             System.out.println(i.toString());
                         }
                         sendBuffer = ByteBuffer.wrap(returnCollection.serialize());
                         serverChannel.send(sendBuffer, clientAddress);
-                        sendBuffer = ByteBuffer.wrap(receivedHuman.serialize());
-                        serverChannel.send(sendBuffer, clientAddress);
+                        portQueue.poll();
                         receiveBuffer.clear();
                     }
                 } catch (ClosedByInterruptException e) {

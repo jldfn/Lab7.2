@@ -148,6 +148,7 @@ public class LabTable extends AbstractTableModel implements TableModel {
             DatagramSocket clientSocket = new DatagramSocket();
             byte[] sendData;
             byte[] receiveData = new byte[1024];
+            byte[] refreshFlag=new byte[1024];
             sendData = "update".getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             clientSocket.send(sendPacket);
@@ -167,8 +168,14 @@ public class LabTable extends AbstractTableModel implements TableModel {
                 try{
                     bos.close();}catch (IOException e){}
             }
+            DatagramPacket flagPacket = new DatagramPacket(refreshFlag, refreshFlag.length);
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            clientSocket.receive(flagPacket);
             clientSocket.receive(receivePacket);
+            String flag=new String(refreshFlag);
+            if(flag.contains("true")){
+                System.out.print("Вы пытались совершить запрос по неактуальным данным, они были обновлены, поробуйте повторить ваш запрос");
+            }
             clientSocket.close();
             return (LabCollection.deserialize(receivePacket.getData()));
         }catch(IOException e){e.printStackTrace();}

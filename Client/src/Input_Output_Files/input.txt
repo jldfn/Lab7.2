@@ -1,6 +1,8 @@
 <Collection name="">
+	<Human name="adsd" age="20" loc="asasds"/>
 	<Human name="asdas" age="1" loc="adasdas"/>
-	<Human name="Dmitry" age="32" loc="Moscowas"/>
+	<Human name="adsd" age="20" loc="asasdsada"/>
+	<Human name="Dmitry" age="2" loc="Moscowas"/>
 	<Human name="sadasdasda" age="20" loc="asdasdas"/>
 	<Human name="Innokentiy" age="20" loc="Birulevo"/>
 	<Human name="sadasdasdasad" age="20" loc="asdasdas"/>
