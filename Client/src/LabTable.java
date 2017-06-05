@@ -153,11 +153,9 @@ public class LabTable extends AbstractTableModel implements TableModel {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address);
             clientSocket.send(sendPacket);
             sendData=object.serialize();
-            System.out.print(sendData);
             sendPacket=new DatagramPacket(sendData,sendData.length,address);
             clientSocket.send(sendPacket);
             sendData= ByteBuffer.allocate(4).putInt(attributeNumber).array();
-            System.out.print(new String(sendData));
             clientSocket.send(new DatagramPacket(sendData,sendData.length,address));
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             try {

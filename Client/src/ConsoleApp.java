@@ -40,6 +40,7 @@ public class ConsoleApp {
                 });
         Runtime.getRuntime().addShutdownHook(new Thread() {
                                                  public void run() {
+                                                     if(timedOut) tryToConnect();
                                                      makeCall("disconnect",new Human("asldn",12,"msklad"));
                                                      SaveCollection(ExpCol);
                                                  }

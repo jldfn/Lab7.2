@@ -20,9 +20,10 @@ public class RemoveLowerListener extends LabListener {
         if ((int) getAgeSpinner().getValue() >= 0 && (int) getAgeSpinner().getValue() <= 120) {
             if (Pattern.compile("[A-zА-я']+").matcher(getNameField().getText()).matches()) {
                 if (Pattern.compile("[A-zА-я0-9\\-_]+").matcher(getLocField().getText()).matches()) {
-                    if(ConsoleApp.timedOut){
+                    if (ConsoleApp.timedOut) {
                         System.out.print("Вы не подавали признаков жизни более двух минут, будет осуществлено переподключение к серверу");
-                        ConsoleApp.tryToConnect();}
+                        ConsoleApp.tryToConnect();
+                    }
                     Human consoleArgument = new Human(getNameField().getText(), (int) getAgeSpinner().getValue(), getLocField().getText());
                     ProgressBarThread jPBarThread = new ProgressBarThread(jpb1);
                     jPBarThread.start();
@@ -36,7 +37,7 @@ public class RemoveLowerListener extends LabListener {
                         }
                     }*/
                     getCollection().clear();
-                    getCollection().addAll(makeCall("remove_lower",consoleArgument).getUselessData());
+                    getCollection().addAll(makeCall("remove_lower", consoleArgument).getUselessData());
                     getNameField().setText("");
                     getTable().fireTableDataChanged();
                     getAgeSpinner().setValue(0);
