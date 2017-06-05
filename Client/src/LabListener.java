@@ -57,10 +57,10 @@ public abstract class LabListener implements ActionListener {
         return locField;
     }
 
-    public static LabCollection makeCall(String command,Human object) {
+    public static void makeCall(String command,Human object) {
         try {
             SocketAddress address = new InetSocketAddress(ConsoleApp.HOSTNAME, ConsoleApp.port);
-            DatagramSocket clientSocket = new DatagramSocket();
+            DatagramSocket clientSocket = ConsoleApp.serverSocket;
             byte[] sendData;
             byte[] receiveData = new byte[1024];
             byte[] refreshFlag=new byte[1024];
@@ -71,17 +71,11 @@ public abstract class LabListener implements ActionListener {
             DatagramPacket flagPacket = new DatagramPacket(refreshFlag, refreshFlag.length);
             clientSocket.send(sendPacket);
             clientSocket.send(new DatagramPacket(object.serialize(),object.serialize().length,address));
-            clientSocket.receive(flagPacket);
-            clientSocket.receive(receivePacket);
             String flag=new String(refreshFlag);
             if(flag.contains("true")){
                 System.out.print("Вы пытались совершить запрос по неактуальным данным, они были обновлены, поробуйте повторить ваш запрос");
             }
             ConsoleApp.timeOut.interrupt();
-            LabCollection receivedCollection=LabCollection.deserialize(receivePacket.getData());
-            clientSocket.close();
-            return receivedCollection;
         }catch(Exception e){e.printStackTrace();}
-        return null;
     }
 }

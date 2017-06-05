@@ -23,6 +23,7 @@ import com.sun.rowset.CachedRowSetImpl;
 public class Server {
     private static final int SSH_PORT = 22;
     private static boolean[] needsRefreshing=new boolean[11];
+    private static boolean[] isBysy=new boolean[11];
     private static ConcurrentLinkedQueue<Integer> portQueue=new ConcurrentLinkedQueue<Integer>();
     private static final String HOSTNAME = "52.174.16.235";
     private static final String USERNAME = "kjkszpj361";
@@ -39,15 +40,10 @@ public class Server {
             @Override
             public void run() {
                 try {
+                    isBysy[port-8880]=false;
                     System.out.println("Starting to monitor port "+port);
-                    needsRefreshing[port-8880]=false;
-                    PGSimpleDataSource source1 = new PGSimpleDataSource();
-                    source1.setDatabaseName("Collection");
-                    source1.setPortNumber(5432);
-                    source1.setServerName("localhost");
-                    source1.setUser("kjkszpj361");
-                    source1.setPassword("jmd821");
-                                        DatagramChannel serverChannel = DatagramChannel.open();
+                    needsRefreshing[port-8880]=true;
+                    DatagramChannel serverChannel = DatagramChannel.open();
                     final SocketAddress clientAddress;
                     serverChannel.bind(new InetSocketAddress(port));
                     byte[] receiveData = new byte[1024];
@@ -56,32 +52,10 @@ public class Server {
                     ByteBuffer sendBuffer = ByteBuffer.wrap(("Connected to port " + port).getBytes());
                     sendBuffer.clear();
                     clientAddress = serverChannel.receive(receiveBuffer);
+                    isBysy[port-8880]=true;
                     System.out.println("Someone connected to port "+port+" from "+getHostname(clientAddress).toString());
                     serverChannel.send(sendBuffer, clientAddress);
-                    Connection connection1=null;
-                    try{
-                        connection1 = source1.getConnection();
-                    } catch (SQLException e){System.out.println("BAGA");}
-                    try{PreparedStatement st1 = connection1.prepareStatement("select * from Humans;");
-                        ResultSet rs = st1.executeQuery();
-                        CachedRowSet cs = new CachedRowSetImpl();
-                        cs.populate(rs);
-                        TreeSet<Human> col = new TreeSet<>();
-                        while (cs.next()){
-                            Human random = new Human();
-                            random.setName(cs.getString("name"));
-                            random.setLocation(cs.getString("location"));
-                            random.setAge(cs.getInt("age"));
-                            col.add(random);
-                        }
-                        LabCollection kkk = new LabCollection();
-                        kkk.setUselessData(col);
-                        System.out.println("Starting to serve port "+ port);
-                        System.out.println();
-                        serverChannel.send(ByteBuffer.wrap(kkk.serialize()),clientAddress);
-                    }
-                    catch(SQLException ee){}
-
+                    refreshPort(serverChannel,clientAddress,port);
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -95,23 +69,42 @@ public class Server {
         }).start();
     }
 
+    public static void refreshPort(DatagramChannel serverChannel,SocketAddress clientAddress,int port) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(isBysy[port-8880]){
+                    if(needsRefreshing[port-8880]){
+                        try {
+                            serverChannel.send(ByteBuffer.wrap(getCollectionFramDatabase().serialize()),clientAddress);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        needsRefreshing[port-8880]=false;
+                    }
+                }
+            }
+        }).start();
+    }
+
     public static void servePort(DatagramChannel serverChannel1, SocketAddress clientAddress1, int port) {
         Thread serveThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                PGSimpleDataSource source = new PGSimpleDataSource();
-                source.setDatabaseName("Collection");
-                source.setPortNumber(5432);
-                source.setServerName("localhost");
-                source.setUser("kjkszpj361");
-                source.setPassword("jmd821");
+                PGSimpleDataSource source1 = new PGSimpleDataSource();
+                source1.setDatabaseName("Collection");
+                source1.setPortNumber(5432);
+                source1.setServerName("localhost");
+                source1.setUser("kjkszpj361");
+                source1.setPassword("jmd821");
                 Connection connection = null;
+                try {
+                    connection = source1.getConnection();
+                } catch (SQLException e) {
+                    System.out.println("BAGA");
+                }
                 LabCollection returnCollection=new LabCollection();
                 SocketAddress clientAddress;
-                try{
-                    connection = source.getConnection();
-                    System.out.println("Connected to database");
-                } catch (SQLException e){System.out.println("Cannot connect to database");}
                 DatagramChannel serverChannel = serverChannel1;
                 TimeoutThread receiveTimeout = new TimeoutThread(Thread.currentThread(), 120000);
                 receiveTimeout.interrupt();
@@ -144,41 +137,9 @@ public class Server {
                         receiveBuffer.get(humanBytes);
                         Human receivedHuman = Human.deserialize(humanBytes);
                         System.out.println("Received Human from client on port"+port);
-                        if (needsRefreshing[port-8880]){
-                            System.out.println("But Client's data needs refreshing, so command will be ignored");
-                            serverChannel.send(ByteBuffer.wrap("true".getBytes()),clientAddress);
-                            if (sentence.contains("update")){
-                                serverChannel.receive(receiveBuffer);
-                                receiveBuffer.clear();
-                                serverChannel.receive(receiveBuffer);
-                                receiveBuffer.clear();
-                            }
-                            sentence="collection";
-                        }else{serverChannel.send(ByteBuffer.wrap("false".getBytes()),clientAddress);}
                         switch (sentence){
                             case "disconnect":{System.out.println("Disconnecting port"+port);
                             throw(new ClosedByInterruptException());}
-                            case "collection": {
-                                System.out.println("Refreshing data on port "+ port);
-                                needsRefreshing[port-8880]=false;
-                                try {
-                                    PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                    ResultSet rs = st1.executeQuery();
-                                    CachedRowSet cs = new CachedRowSetImpl();
-                                    cs.populate(rs);
-                                    TreeSet<Human> col = new TreeSet<>();
-                                    while (cs.next()) {
-                                        Human random = new Human();
-                                        random.setName(cs.getString("name"));
-                                        random.setLocation(cs.getString("location"));
-                                        random.setAge(cs.getInt("age"));
-                                        col.add(random);
-                                    }
-                                    returnCollection.setUselessData(col);
-                                } catch (SQLException e) {
-                                    e.printStackTrace();
-                                }
-                            }break;
                             case "remove":{
                                 try {
                                     PreparedStatement st = connection.prepareStatement("delete from Humans where (name = ?) and (age = ?) and (location = ?);");
@@ -187,19 +148,6 @@ public class Server {
                                     st.setString(3, receivedHuman.getLocation());
                                     System.out.println("Removing object from collection... "+port);
                                     st.execute();
-                                    PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                    ResultSet rs = st1.executeQuery();
-                                    CachedRowSet cs = new CachedRowSetImpl();
-                                    cs.populate(rs);
-                                    TreeSet<Human> col = new TreeSet<>();
-                                    while (cs.next()){
-                                        Human random = new Human();
-                                        random.setName(cs.getString("name"));
-                                        random.setLocation(cs.getString("location"));
-                                        random.setAge(cs.getInt("age"));
-                                        col.add(random);
-                                    }
-                                    returnCollection.setUselessData(col);
                                 }catch (SQLException e){}
                                 break;
                             }
@@ -266,19 +214,6 @@ public class Server {
                                     st.setInt(3, receivedHuman.getAge());
                                     st.setString(4, receivedHuman.getLocation());
                                     st.execute();
-                                    PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                    ResultSet rs = st1.executeQuery();
-                                    CachedRowSet cs = new CachedRowSetImpl();
-                                    cs.populate(rs);
-                                    TreeSet<Human> col = new TreeSet<>();
-                                    while (cs.next()){
-                                        Human random = new Human();
-                                        random.setName(cs.getString("name"));
-                                        random.setLocation(cs.getString("location"));
-                                        random.setAge(cs.getInt("age"));
-                                        col.add(random);
-                                        returnCollection.setUselessData(col);
-                                    }
                                 }catch (SQLException e) {System.out.println("Something went wrong "+port);}
                                 break;
                             }
@@ -290,19 +225,6 @@ public class Server {
                                     st.setString(3, receivedHuman.getLocation());
                                     System.out.println("Adding new object to database... "+port);
                                     st.executeUpdate();
-                                    PreparedStatement st1 = connection.prepareStatement("select * from Humans;");
-                                    ResultSet rs = st1.executeQuery();
-                                    CachedRowSet cs = new CachedRowSetImpl();
-                                    cs.populate(rs);
-                                    TreeSet<Human> col = new TreeSet<>();
-                                    while (cs.next()){
-                                        Human random = new Human();
-                                        random.setName(cs.getString("name"));
-                                        random.setLocation(cs.getString("location"));
-                                        random.setAge(cs.getInt("age"));
-                                        col.add(random);
-                                    }
-                                    returnCollection.setUselessData(col);
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }
@@ -311,14 +233,12 @@ public class Server {
                             case "import":{}
                         }
                         for (int i=0;i<=10;i++){
-                            if(8880+i!=port){
-                            needsRefreshing[i]=true;}
+                            if (isBysy[i])
+                            needsRefreshing[i]=true;
                         }
                         System.out.println("Sending collection to client on port "+port);
                         System.out.println();
                         System.out.println();
-                        sendBuffer = ByteBuffer.wrap(returnCollection.serialize());
-                        serverChannel.send(sendBuffer, clientAddress);
                         portQueue.poll();
                         receiveBuffer.clear();
                     }
@@ -340,6 +260,39 @@ public class Server {
             }
         });
         serveThread.start();
+    }
+
+    public static LabCollection getCollectionFramDatabase() {
+        PGSimpleDataSource source1 = new PGSimpleDataSource();
+        source1.setDatabaseName("Collection");
+        source1.setPortNumber(5432);
+        source1.setServerName("localhost");
+        source1.setUser("kjkszpj361");
+        source1.setPassword("jmd821");
+        Connection connection1 = null;
+        try {
+            connection1 = source1.getConnection();
+        } catch (SQLException e) {
+            System.out.println("BAGA");
+        }
+        try {
+            PreparedStatement st1 = connection1.prepareStatement("select * from Humans;");
+            ResultSet rs = st1.executeQuery();
+            CachedRowSet cs = new CachedRowSetImpl();
+            cs.populate(rs);
+            TreeSet<Human> col = new TreeSet<>();
+            while (cs.next()) {
+                Human random = new Human();
+                random.setName(cs.getString("name"));
+                random.setLocation(cs.getString("location"));
+                random.setAge(cs.getInt("age"));
+                col.add(random);
+            }
+            LabCollection kkk = new LabCollection();
+            kkk.setUselessData(col);
+            return kkk;
+        }catch(SQLException ee){}
+        return null;
     }
 
     public static SocketAddress receiveFromAddress(DatagramChannel serverChannel,SocketAddress client,ByteBuffer data) throws IOException {

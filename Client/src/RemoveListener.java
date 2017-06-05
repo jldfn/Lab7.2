@@ -61,7 +61,7 @@ public class RemoveListener extends LabListener {
                     getLocField().setText("");e
                     */
                     getCollection().clear();
-                    getCollection().addAll(makeCall("remove",consoleArgument).getUselessData());
+                    makeCall("remove",consoleArgument);
                     getTable().fireTableDataChanged();
                 } else {
                     System.out.print("Поле \"Локация\" не может являться пустым. В локации могут содержаться лишь символы кириллицы, латинского алфавита, цифры, \"-\" и \"_\"");

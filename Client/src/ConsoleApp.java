@@ -18,15 +18,22 @@ import java.util.regex.Pattern;
 public class ConsoleApp {
     volatile  static boolean timedOut=false;
     final static String defaultPath = "src/Input_Output_Files/input.txt";
-    static final String HOSTNAME = "52.174.16.235";
+    static final String HOSTNAME = "52.174.250.216";
     static final String USERNAME = "kjkszpj361";
     static final String PASSWORD = "B9zbYEl*dj}6";
+    static DatagramSocket serverSocket;
     static TimeoutThread timeOut;
     static public int port=8880;
     public static void main(String[] args) {
+        try {
+            serverSocket=new DatagramSocket();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
         timeOut=new TimeoutThread(Thread.currentThread());
         timeOut.start();
-        LabCollection ExpCol = tryToConnect();
+        LabCollection ExpCol=new LabCollection();
+        tryToConnect();
         SwingUtilities.invokeLater(
                 new Runnable() {
                     @Override
@@ -40,7 +47,7 @@ public class ConsoleApp {
                 });
         Runtime.getRuntime().addShutdownHook(new Thread() {
                                                  public void run() {
-                                                     if(timedOut) tryToConnect();
+                                                     if(!timedOut)
                                                      makeCall("disconnect",new Human("asldn",12,"msklad"));
                                                      SaveCollection(ExpCol);
                                                  }
@@ -80,7 +87,6 @@ public class ConsoleApp {
         sortTable.getColumnModel().getColumn(3).setCellRenderer(first);
         sortTable.setRowSorter(sort);
         // </Table sorter setting>
-
         // <Table filter setting>
         JTextField filterText = new JTextField(30);
         JButton filterButton = new JButton("Filter");
@@ -103,7 +109,8 @@ public class ConsoleApp {
         // <Table filter setting>
 
         //  </Table setting>
-
+        ReceiveThread receiveThread=new ReceiveThread(new InetSocketAddress(HOSTNAME,port),guiFrame.getTable());
+        receiveThread.start();
         //  <Output panel Setting>
         JTextPane OutputPanel = new JTextPane();
         OutputPanel.setPreferredSize(new Dimension(690, 135));
@@ -168,6 +175,7 @@ public class ConsoleApp {
         guiFrame.add(new JScrollPane(OutputPanel));
         guiFrame.add(jpb);
         //  </Adding elements to frame>
+        makeCall("collection",new Human());
         guiFrame.setVisible(true);
     }
 
@@ -271,7 +279,7 @@ public class ConsoleApp {
         }
     }
 
-    public static LabCollection tryToConnect() {
+    public static void tryToConnect() {
         int i=0;
         try {
             for (i = 8880; i <= 8890; i++) {
@@ -294,14 +302,13 @@ public class ConsoleApp {
             System.out.println("asda");
             e.printStackTrace();
         }
-        if(i==8891){System.out.print("Нет соединения с сервером или заняты все порты"); return null;}
-        else return LabListener.makeCall("collection",new Human());
+        if(i==8891){System.out.print("Нет соединения с сервером или заняты все порты"); }
     }
 
     public static void makeCall(String command,Human object) {
         try {
             SocketAddress address = new InetSocketAddress(ConsoleApp.HOSTNAME, ConsoleApp.port);
-            DatagramSocket clientSocket = new DatagramSocket();
+            DatagramSocket clientSocket = serverSocket;
             byte[] sendData;
             byte[] receiveData = new byte[1024];
             String sentence = command;

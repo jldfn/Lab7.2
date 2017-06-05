@@ -37,7 +37,7 @@ public class RemoveLowerListener extends LabListener {
                         }
                     }*/
                     getCollection().clear();
-                    getCollection().addAll(makeCall("remove_lower", consoleArgument).getUselessData());
+                    makeCall("remove_lower", consoleArgument);
                     getNameField().setText("");
                     getTable().fireTableDataChanged();
                     getAgeSpinner().setValue(0);
