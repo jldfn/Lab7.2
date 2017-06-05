@@ -55,11 +55,11 @@ public class RemoveListener extends LabListener {
                     }
                     if (!removed) {
                         System.out.print("Данного элемента нет в коллекции");
-                    }
+                    }*/
                     getNameField().setText("");
                     getAgeSpinner().setValue(0);
-                    getLocField().setText("");e
-                    */
+                    getLocField().setText("");
+
                     getCollection().clear();
                     getCollection().addAll(makeCall("remove",consoleArgument).getUselessData());
                     getTable().fireTableDataChanged();

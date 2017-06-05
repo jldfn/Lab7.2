@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 public class ConsoleApp {
     volatile  static boolean timedOut=false;
     final static String defaultPath = "src/Input_Output_Files/input.txt";
-    static final String HOSTNAME = "52.174.16.235";
+    static final String HOSTNAME = "52.174.250.216";
     static final String USERNAME = "kjkszpj361";
     static final String PASSWORD = "B9zbYEl*dj}6";
     static TimeoutThread timeOut;

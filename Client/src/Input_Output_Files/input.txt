@@ -1,7 +1,13 @@
 <Collection name="">
+	<Human name="ASAS" age="20" loc="asdsa"/>
+	<Human name="ASASs" age="20" loc="asdsa"/>
+	<Human name="xzcxcz" age="30" loc="ASDAS"/>
+	<Human name="dscsdcsdc" age="30" loc="asdsad"/>
 	<Human name="фывашшщщщ" age="23" loc="фыв"/>
-	<Human name="фы" age="20" loc="ФЫВФЫФЫВЫВВЙй"/>
-	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВ"/>
+	<Human name="ЕГОР_ЛЕТОВ" age="45" loc="ОМСК"/>
+	<Human name="МИША_ГОРШОК" age="45" loc="СПБ"/>
+	<Human name="раюотаешь" age="20" loc="фывфы"/>
+	<Human name="фыы" age="20" loc="ФЫВФЫФЫВЫВВЙй"/>
 	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВЫВ"/>
 	<Human name="фывфывф" age="20" loc="ФЫВФЫФЫВЫВВЙ"/>
 	<Human name="ТЕСТОВЫЙЧЕЛИК" age="100" loc="ПРЯМВОТКАПСОМ"/>

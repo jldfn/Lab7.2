@@ -23,11 +23,11 @@ public class SingleAddingListener extends LabListener {
                     Human Person = new Human(getNameField().getText(), (int) getAgeSpinner().getValue(), getLocField().getText());
                     /*
                     getCollection().add(Person);
+                    getTable().fireTableDataChanged();
+                    System.out.print("Объект " + Person.toString() + " был успешно занесен в коллекцию");*/
                     getNameField().setText("");
                     getAgeSpinner().setValue(0);
                     getLocField().setText("");
-                    getTable().fireTableDataChanged();
-                    System.out.print("Объект " + Person.toString() + " был успешно занесен в коллекцию");*/
                     getCollection().clear();
                     getCollection().addAll(makeCall("add",Person).getUselessData());
                     getTable().fireTableDataChanged();

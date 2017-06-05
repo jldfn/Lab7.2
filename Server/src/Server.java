@@ -124,16 +124,20 @@ public class Server {
                         receiveBuffer.clear();
                         byte[] sendData = new byte[1024];
                         ByteBuffer sendBuffer = ByteBuffer.wrap(sendData);
+                        String sentence;
                         sendBuffer.clear();
-                        receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
-                        receiveTimeout.sleepTime = 120000;
-                        receiveTimeout.interrupt();
-                        receiveBuffer.flip();
-                        byte[] bytes = new byte[receiveBuffer.remaining()];
-                        receiveBuffer.get(bytes);
-                        String sentence = new String(bytes);
+                        while(true) {
+                            receiveFromAddress(serverChannel, clientAddress1, receiveBuffer);
+                            receiveTimeout.sleepTime = 120000;
+                            receiveTimeout.interrupt();
+                            receiveBuffer.flip();
+                            byte[] bytes = new byte[receiveBuffer.remaining()];
+                            receiveBuffer.get(bytes);
+                            sentence = new String(bytes);
+                            receiveBuffer.clear();
+                            if(!sentence.contains("test")) break;
+                        }
                         System.out.println("Client send command "+sentence+" on port "+port);
-                        receiveBuffer.clear();
                         clientAddress=receiveFromAddress(serverChannel,clientAddress1,receiveBuffer);
                         portQueue.add(port);
                         while (true){
